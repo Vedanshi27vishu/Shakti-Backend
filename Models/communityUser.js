@@ -2,6 +2,11 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
 const UserCommunitySchema = new mongoose.Schema({
+  userId: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: 'PersonalDetails',
+  required: false
+},
   name: {
     type: String,
     required: true

@@ -58,16 +58,19 @@ const sendMessage = async (req, res) => {
 };
 
 
-// GET /api/message/:conversationId
-const getMessages = async (req, res) => {
+// GET /api/getmyconvo
+const getMyConversations = async (req, res) => {
   try {
-    const messages = await Message.find({
-      conversationId: req.params.conversationId
-    }).sort({ createdAt: 1 });
+    const myId = req.userId;
 
-    res.status(200).json(messages);
+    // Find all conversations where user is a member
+    const conversations = await Conversation.find({
+      members: myId
+    }).sort({ updatedAt: -1 });
+
+    res.status(200).json(conversations);
   } catch (err) {
-    res.status(500).json({ message: "Failed to fetch messages", error: err });
+    res.status(500).json({ message: "Failed to fetch conversations", error: err });
   }
 };
 
@@ -75,5 +78,5 @@ const getMessages = async (req, res) => {
 module.exports={
   startConversation,
   sendMessage,
-  getMessages,
+  getMyConversations,
 }

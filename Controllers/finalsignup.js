@@ -86,12 +86,41 @@ const signup3User = async (req, res) => {
     });
     await newBusinessIdea.save();
 
+    const CommunityUser = require('../Models/communityUser'); // import this at top
+
+// Check if community user already exists (avoid duplicates)
+const existingCommunityUser = await CommunityUser.findOne({ email });
+if (!existingCommunityUser) {
+  const communityUser = new CommunityUser({
+  userId: savedPersonal._id, // link to full user
+  name: user.personalDetails.Full_Name,
+  email,
+  password: user.passwordDetails.HashedPassword,
+  businessIdea: ideaDetails.Idea_Description,
+  interestTags: user.personalDetails.Preferred_Languages || []
+});
+
+
+  await communityUser.save();
+}
+
+
     // Generate JWT token
-    const token = jwt.sign(
-      { userId: savedPersonal._id, email: email },
-      process.env.JWT_SECRET,
-      { expiresIn: '7d' }
-    );
+    // const token = jwt.sign(
+    //   { userId: savedPersonal._id, email: email },
+    //   process.env.JWT_SECRET,
+    //   { expiresIn: '7d' }
+    // );
+const token = jwt.sign(
+  {
+    userId: user._id,
+    email: user.email,
+    name: user.name,
+    // add other non-sensitive fields if needed
+  },
+  process.env.JWT_SECRET,
+  { expiresIn: "7d" }
+);
 
     const { Full_Name } = user.personalDetails;
 

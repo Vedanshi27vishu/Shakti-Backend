@@ -9,6 +9,7 @@ const budgetRoutes = require('./Routes/predictRoutes');
 const searchRoutes = require('./Routes/searchRoutes');
 const  videoRoutes = require('./Routes/videosRoutes');
 const pdfRoutes= require('./Routes/pdfsearchbuisness');
+const indexRoutes= require('./Routes/index') 
 dotenv.config();
 
 const app = express();
@@ -21,7 +22,7 @@ mongoose.connect(process.env.MONGO_URI, {
 })
 .then(() => console.log('✅ MongoDB connected'))
 .catch((err) => console.error('❌ MongoDB connection error:', err));
-
+app.use('/',indexRoutes);
 app.use('/auth', authRoutes); 
 app.use('/filter-loans', filterLoansRouter);
 app.use('/private-schemes', PrivateschemesRouter);

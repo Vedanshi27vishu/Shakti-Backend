@@ -24,7 +24,7 @@ const createPost= async(req,res)=>{
 
 const getPostsByInterest = async(req,res)=>{
   try {
-    const userId = req.userId;
+    const userId = req.user.userId;
     const user = await User.findById(userId);
 
     if (!user) return res.status(404).json({ message: "User not found" });
