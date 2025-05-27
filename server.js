@@ -11,7 +11,6 @@ const completeSignupRoute2 = require('./Routes/complete_signup2');
 const completeSignupRoute3 = require('./Routes/complete_signup3');
 const requireAuth = require('./Middlewares/authMiddleware')
 
-
 // Load environment variables
 dotenv.config();
 
@@ -122,6 +121,8 @@ app.use('/complete', completeSignupRoute);
 app.use('/complete2', completeSignupRoute2);
 app.use('/complete3', completeSignupRoute3);
 
+app.use('/complete2',completeSignupRoute2);
+app.use('/complete3',completeSignupRoute3);
 const filterLoansRouter = require('./Controllers/filter');
 const PrivateschemesRouter = require('./Controllers/private_schemes');
 const scrapeData = require('./Controllers/microinvestments');
@@ -152,6 +153,7 @@ app.use('/user', getuser);
 app.use('/api', budgetRout);
 app.use('/',profit);
 
+app.use('/user' ,getuser);
 
 // Scraping route
 app.post('/scrape', requireAuth, async (req, res) => {
