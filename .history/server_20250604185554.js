@@ -32,22 +32,27 @@ const budgetRout = require('./BudgetPrediction/futureprediction');
 const profit = require('./Routes/percentage');
 const taskRoutes = require('./Routes/taskRoutes');
 const { Server } = require('socket.io');
-const sixmonths = require('./BudgetPrediction/lastsixmonth');
+const  sixmonths= require('./BudgetPrediction/lastsixmonth')
 const financialRoutes = require('./Controllers/getallloans');
-const loanspayment = require('./Controllers/monthlyloanpayment');
-const lasttwomonthexpands = require('./Controllers/lasttwomonthexpands');
-const userprofile = require('./Routes/userProfile');
-const shaktidetails = require('./Routes/shaktiProfile');
+const loanspayment= require('./Controllers/monthlyloanpayment')
+const lasttwomonthexpands = require('./Controllers/lasttwomonthexpands')
+const userprofile= require('./Routes/userProfile')
+const shaktidetails= require('./Routes/shaktiProfile')
 
 dotenv.config();
 
+// Express app setup
 const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
+// Create HTTP server
 const server = http.createServer(app);
 
+// Socket.IO setup
+
+// Socket.IO setup
 const io = new Server(server, {
   cors: {
     origin: '*',
@@ -55,6 +60,7 @@ const io = new Server(server, {
   }
 });
 
+// MongoDB connection
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true
@@ -62,6 +68,7 @@ mongoose.connect(process.env.MONGO_URI, {
 .then(() => console.log('✅ MongoDB connected'))
 .catch(err => console.error('❌ MongoDB connection error:', err));
 
+// Socket.IO authentication middleware
 io.use((socket, next) => {
   const token = socket.handshake.auth.token;
   if (!token) return next(new Error('No token provided'));
@@ -75,10 +82,12 @@ io.use((socket, next) => {
   }
 });
 
+// Socket.IO connection
 io.on('connection', (socket) => {
-  console.log(`🔌 User connected: ${socket.user.userId}`);
+  console.log(🔌 User connected: ${socket.user.userId});
   socket.join(socket.user.userId);
 
+  // 📩 Handle private message
   socket.on('private-message', async ({ toUserId, message }) => {
     if (!toUserId || !message) {
       return socket.emit('error', { message: 'Missing toUserId or message' });
@@ -91,6 +100,7 @@ io.on('connection', (socket) => {
         message
       });
 
+      // Emit to receiver
       io.to(toUserId).emit('private-message', {
         _id: msg._id,
         from: socket.user.userId,
@@ -100,6 +110,7 @@ io.on('connection', (socket) => {
         seen: msg.seen
       });
 
+      // Optionally emit to sender for immediate UI update
       socket.emit('private-message', {
         _id: msg._id,
         from: socket.user.userId,
@@ -114,6 +125,7 @@ io.on('connection', (socket) => {
     }
   });
 
+  // ✅ Message seen
   socket.on('message-seen', async ({ fromUserId }) => {
     try {
       await Message.updateMany(
@@ -129,6 +141,7 @@ io.on('connection', (socket) => {
     }
   });
 
+  // ✍️ Typing indicators
   socket.on('typing', ({ toUserId }) => {
     io.to(toUserId).emit('typing', {
       fromUserId: socket.user.userId
@@ -141,6 +154,7 @@ io.on('connection', (socket) => {
     });
   });
 
+  // 📜 Fetch old messages
   socket.on('fetch-messages', async ({ userId }) => {
     try {
       const msgs = await Message.find({
@@ -148,7 +162,7 @@ io.on('connection', (socket) => {
           { senderId: socket.user.userId, receiverId: userId },
           { senderId: userId, receiverId: socket.user.userId }
         ]
-      }).sort({ timestamp: 1 });
+      }).sort({ timestamp: 1 }); // Sort oldest to newest
 
       socket.emit('old-messages', msgs);
     } catch (error) {
@@ -157,8 +171,9 @@ io.on('connection', (socket) => {
     }
   });
 
+  // ❌ Disconnect
   socket.on('disconnect', () => {
-    console.log(`❌ User disconnected: ${socket.user.userId}`);
+    console.log(❌ User disconnected: ${socket.user.userId});
   });
 });
 
@@ -182,10 +197,12 @@ app.use('/tasks', taskRoutes);
 app.use('/api/recentmessages', recentMessagesRoute);
 app.use('/api', sixmonths);
 app.use('/api/financial', financialRoutes);
-app.use('/api', loanspayment);
-app.use('/api', lasttwomonthexpands);
-app.use('/profile', userprofile);
-app.use('/shakti', shaktidetails);
+app.use('/api' ,loanspayment),
+app.use('/api',lasttwomonthexpands),
+app.use('/profile' ,userprofile);
+app.use('/shakti',shaktidetails);
+
+
 
 // Scraper API
 app.post('/scrape', requireAuth, async (req, res) => {
@@ -193,8 +210,8 @@ app.post('/scrape', requireAuth, async (req, res) => {
     const user = req.userId;
     const business = await BusinessDetailSignup.findOne({ user });
 
-    const location = 'Ghaziabad'; // or use: business?.ideaDetails?.Buisness_City
-    const targetUrl = `https://www.justdial.com/${location}/Peer-To-Peer-Investment-Service-Providers/nct-11948937?stype=category_list&redirect=301`;
+    const location = "Ghaziabad"; // static or use business?.ideaDetails?.Buisness_City
+    const targetUrl = https://www.justdial.com/${location}/Peer-To-Peer-Investment-Service-Providers/nct-11948937?stype=category_list&redirect=301;
 
     const data = await scrapeData(targetUrl);
 
@@ -211,5 +228,6 @@ app.post('/scrape', requireAuth, async (req, res) => {
   }
 });
 
+// Start server
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+server.listen(PORT, () => console.log(🚀 Server running on port ${PORT}));
