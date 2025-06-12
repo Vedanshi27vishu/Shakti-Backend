@@ -1,5 +1,9 @@
 const mongoose = require('mongoose');
 
+<<<<<<< HEAD
+const MessageSchema = new mongoose.Schema({
+  senderId: {
+=======
 const messageSchema = new mongoose.Schema({
   conversationId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -7,10 +11,29 @@ const messageSchema = new mongoose.Schema({
     required: true,
   },
   sender: {
+>>>>>>> master
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true,
   },
+<<<<<<< HEAD
+  receiverId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+  },
+  message: {
+    type: String,
+    required: true,
+  },
+  timestamp: {
+    type: Date,
+    default: Date.now,
+  },
+});
+
+module.exports = mongoose.model('Message', MessageSchema);
+=======
   text: {
     type: String,
   },
@@ -25,3 +48,4 @@ const messageSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 module.exports = mongoose.model('Message', messageSchema);
+>>>>>>> master

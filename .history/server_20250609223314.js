@@ -38,7 +38,6 @@ const loanspayment= require('./Controllers/monthlyloanpayment')
 const lasttwomonthexpands = require('./Controllers/lasttwomonthexpands')
 const userprofile= require('./Routes/userProfile')
 const shaktidetails= require('./Routes/shaktiProfile')
-const fileUploadRoutes = require('./Routes/fileuploadmessage');
 
 dotenv.config();
 
@@ -50,35 +49,9 @@ app.use(express.static('public'));
 
 // Create HTTP server
 const server = http.createServer(app);
+
 // Socket.IO setup
-const io = new Server(server, {
-  cors: {
-    origin: '*',
-    methods: ['GET', 'POST']
-  }
-});
-
-// MongoDB connection
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
-.then(() => console.log('✅ MongoDB connected'))
-.catch(err => console.error('❌ MongoDB connection error:', err));
-
-// Socket.IO authentication middleware
-io.use((socket, next) => {
-  const token = socket.handshake.auth.token;
-  if (!token) return next(new Error('No token provided'));
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    socket.user = decoded;
-    next();
-  } catch (err) {
-    return next(new Error('Invalid token'));
-  }
-});
+// Socket.IO connection - REPLACE existing io.on('connection') block
 io.on('connection', (socket) => {
   console.log(`🔌 User connected: ${socket.user.userId}`);
   socket.join(socket.user.userId);
@@ -384,7 +357,7 @@ app.use('/api' ,loanspayment),
 app.use('/api',lasttwomonthexpands),
 app.use('/profile' ,userprofile);
 app.use('/shakti',shaktidetails);
-app.use('/api/upload', fileUploadRoutes);
+
 
 
 // Scraper API

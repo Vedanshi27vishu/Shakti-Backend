@@ -14,18 +14,10 @@
     .feature-section h4 { margin-top: 0; color: #333; }
     .reaction-btn { padding: 5px; margin: 2px; border: none; background: #f0f0f0; border-radius: 3px; cursor: pointer; }
     .reaction-btn:hover { background: #e0e0e0; }
-    .error { color: red; margin: 5px 0; }
-    .success { color: green; margin: 5px 0; }
   </style>
 </head>
 <body>
   <h2>🟢 One-to-One Chat App</h2>
-
-  <div class="feature-section">
-    <h4>Server Configuration</h4>
-    <label>Server URL:</label><br />
-    <input type="text" id="serverUrl" value="http://localhost:5000" size="50" placeholder="Enter server URL" />
-  </div>
 
   <div class="feature-section">
     <h4>Connection</h4>
@@ -50,11 +42,9 @@
     <h4>File Upload</h4>
     <input type="file" id="imageInput" accept="image/*" />
     <button onclick="uploadImage()">Upload Image</button>
-    <div id="imageUploadStatus"></div>
     <br><br>
     <input type="file" id="fileInput" />
     <button onclick="uploadFile()">Upload File</button>
-    <div id="fileUploadStatus"></div>
   </div>
 
   <!-- Message Actions -->
@@ -88,25 +78,14 @@
   <script>
     let socket;
 
-    function getServerUrl() {
-      return document.getElementById('serverUrl').value.trim();
-    }
-
     function connectSocket() {
       const token = document.getElementById('jwt').value;
-      const serverUrl = getServerUrl();
-      
       if (!token) {
         alert("Please enter a JWT token");
         return;
       }
 
-      if (!serverUrl) {
-        alert("Please enter server URL");
-        return;
-      }
-
-      socket = io(serverUrl, {
+      socket = io('http://localhost:5000', {
         auth: { token },
       });
 
@@ -184,11 +163,6 @@
           });
         }
       });
-
-      socket.on('error', (error) => {
-        console.error('Socket error:', error);
-        addToChat(`❌ Error: ${error.message}`);
-      });
     }
 
     function addToChat(message) {
@@ -234,146 +208,92 @@
       }
     }
 
-    function showStatus(elementId, message, isError = false) {
-      const element = document.getElementById(elementId);
-      element.innerHTML = `<div class="${isError ? 'error' : 'success'}">${message}</div>`;
-      setTimeout(() => {
-        element.innerHTML = '';
-      }, 5000);
-    }
-
     // File upload functions
     async function uploadImage() {
       const input = document.getElementById('imageInput');
       const file = input.files[0];
-      const serverUrl = getServerUrl();
-      const token = document.getElementById('jwt').value;
-      
-      if (!file) {
-        showStatus('imageUploadStatus', 'Please select an image', true);
-        return;
-      }
-
-      if (!token) {
-        showStatus('imageUploadStatus', 'Please enter JWT token first', true);
-        return;
-      }
+      if (!file) return alert('Please select an image');
 
       const formData = new FormData();
       formData.append('image', file);
 
       try {
-        showStatus('imageUploadStatus', 'Uploading image...');
-        
-        const response = await fetch(`${serverUrl}/api/upload/image`, {
+        const response = await fetch('/api/upload/image', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${token}`
+            'Authorization': `Bearer ${document.getElementById('jwt').value}`
           },
           body: formData
         });
 
         const result = await response.json();
-        
-        if (response.ok && result.success) {
+        if (result.success) {
           console.log('Image uploaded:', result.image);
-          showStatus('imageUploadStatus', 'Image uploaded successfully!');
+          // Send image message
+          socket.emit('private-message', {
+            toUserId: document.getElementById('recipientId').value,
+            messageType: 'image',
+            image: result.image
+          });
           
-          // Send image message via socket
-          if (socket && socket.connected) {
-            socket.emit('private-message', {
-              toUserId: document.getElementById('recipientId').value,
-              messageType: 'image',
-              image: result.image
-            });
-            
-            // Display in chat
-            const chatBox = document.getElementById('chatBox');
-            const selfMsg = `
-              <div style="text-align:right;">
-                <b>You:</b> <img src="${result.image.url}" alt="Image" style="max-width: 200px; max-height: 200px;" />
-                <div class="seen-status">Sent</div>
-              </div>
-            `;
-            chatBox.innerHTML += selfMsg;
-            chatBox.scrollTop = chatBox.scrollHeight;
-          }
-          
-          // Clear input
-          input.value = '';
-        } else {
-          throw new Error(result.error || 'Upload failed');
+          // Display in chat
+          const chatBox = document.getElementById('chatBox');
+          const selfMsg = `
+            <div style="text-align:right;">
+              <b>You:</b> <img src="${result.image.url}" alt="Image" style="max-width: 200px; max-height: 200px;" />
+              <div class="seen-status">Sent</div>
+            </div>
+          `;
+          chatBox.innerHTML += selfMsg;
+          chatBox.scrollTop = chatBox.scrollHeight;
         }
       } catch (error) {
         console.error('Upload failed:', error);
-        showStatus('imageUploadStatus', `Image upload failed: ${error.message}`, true);
+        alert('Image upload failed');
       }
     }
 
     async function uploadFile() {
       const input = document.getElementById('fileInput');
       const file = input.files[0];
-      const serverUrl = getServerUrl();
-      const token = document.getElementById('jwt').value;
-      
-      if (!file) {
-        showStatus('fileUploadStatus', 'Please select a file', true);
-        return;
-      }
-
-      if (!token) {
-        showStatus('fileUploadStatus', 'Please enter JWT token first', true);
-        return;
-      }
+      if (!file) return alert('Please select a file');
 
       const formData = new FormData();
       formData.append('file', file);
 
       try {
-        showStatus('fileUploadStatus', 'Uploading file...');
-        
-        const response = await fetch(`${serverUrl}/api/upload/file`, {
+        const response = await fetch('/api/upload/file', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${token}`
+            'Authorization': `Bearer ${document.getElementById('jwt').value}`
           },
           body: formData
         });
 
         const result = await response.json();
-        
-        if (response.ok && result.success) {
+        if (result.success) {
           console.log('File uploaded:', result.file);
-          showStatus('fileUploadStatus', 'File uploaded successfully!');
+          // Send file message
+          socket.emit('private-message', {
+            toUserId: document.getElementById('recipientId').value,
+            messageType: 'file',
+            file: result.file
+          });
           
-          // Send file message via socket
-          if (socket && socket.connected) {
-            socket.emit('private-message', {
-              toUserId: document.getElementById('recipientId').value,
-              messageType: 'file',
-              file: result.file
-            });
-            
-            // Display in chat
-            const chatBox = document.getElementById('chatBox');
-            const selfMsg = `
-              <div style="text-align:right;">
-                <b>You:</b> <a href="${result.file.url}" download="${result.file.originalName}">${result.file.originalName}</a>
-                <div class="seen-status">Sent</div>
-              </div>
-            `;
-            chatBox.innerHTML += selfMsg;
-            chatBox.scrollTop = chatBox.scrollHeight;
-          }
-          
-          // Clear input
-          input.value = '';
-        } else {
-          throw new Error(result.error || 'Upload failed');
+          // Display in chat
+          const chatBox = document.getElementById('chatBox');
+          const selfMsg = `
+            <div style="text-align:right;">
+              <b>You:</b> <a href="${result.file.url}" download="${result.file.originalName}">${result.file.originalName}</a>
+              <div class="seen-status">Sent</div>
+            </div>
+          `;
+          chatBox.innerHTML += selfMsg;
+          chatBox.scrollTop = chatBox.scrollHeight;
         }
       } catch (error) {
         console.error('Upload failed:', error);
-        showStatus('fileUploadStatus', `File upload failed: ${error.message}`, true);
+        alert('File upload failed');
       }
     }
 

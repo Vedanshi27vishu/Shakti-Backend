@@ -1,0 +1,152 @@
+<!-- Add these elements to your existing HTML interface -->
+
+<!-- File Upload Section -->
+<div style="margin: 10px 0; padding: 10px; border: 1px solid #ddd;">
+  <h4>File Upload</h4>
+  <input type="file" id="imageInput" accept="image/*" />
+  <button onclick="uploadImage()">Upload Image</button>
+  <br><br>
+  <input type="file" id="fileInput" />
+  <button onclick="uploadFile()">Upload File</button>
+</div>
+
+<!-- Message Actions -->
+<div style="margin: 10px 0; padding: 10px; border: 1px solid #ddd;">
+  <h4>Message Actions</h4>
+  <input type="text" id="messageIdInput" placeholder="Message ID" />
+  <input type="text" id="editMessageInput" placeholder="New message content" />
+  <button onclick="editMessage()">Edit Message</button>
+  <button onclick="deleteMessage('me')">Delete for Me</button>
+  <button onclick="deleteMessage('everyone')">Delete for Everyone</button>
+  <button onclick="addReaction('❤️')">❤️</button>
+  <button onclick="addReaction('👍')">👍</button>
+  <button onclick="addReaction('😂')">😂</button>
+</div>
+
+<!-- Search Messages -->
+<div style="margin: 10px 0; padding: 10px; border: 1px solid #ddd;">
+  <h4>Search Messages</h4>
+  <input type="text" id="searchInput" placeholder="Search messages..." />
+  <button onclick="searchMessages()">Search</button>
+</div>
+
+<script>
+// Add these functions to your existing JavaScript
+
+async function uploadImage() {
+  const input = document.getElementById('imageInput');
+  const file = input.files[0];
+  if (!file) return alert('Please select an image');
+
+  const formData = new FormData();
+  formData.append('image', file);
+
+  try {
+    const response = await fetch('/api/upload/image', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      },
+      body: formData
+    });
+
+    const result = await response.json();
+    if (result.success) {
+      console.log('Image uploaded:', result.image);
+      // Send image message
+      socket.emit('private-message', {
+        toUserId: document.getElementById('recipientInput').value,
+        messageType: 'image',
+        image: result.image
+      });
+    }
+  } catch (error) {
+    console.error('Upload failed:', error);
+  }
+}
+
+async function uploadFile() {
+  const input = document.getElementById('fileInput');
+  const file = input.files[0];
+  if (!file) return alert('Please select a file');
+
+  const formData = new FormData();
+  formData.append('file', file);
+
+  try {
+    const response = await fetch('/api/upload/file', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      },
+      body: formData
+    });
+
+    const result = await response.json();
+    if (result.success) {
+      console.log('File uploaded:', result.file);
+      // Send file message
+      socket.emit('private-message', {
+        toUserId: document.getElementById('recipientInput').value,
+        messageType: 'file',
+        file: result.file
+      });
+    }
+  } catch (error) {
+    console.error('Upload failed:', error);
+  }
+}
+
+function editMessage() {
+  const messageId = document.getElementById('messageIdInput').value;
+  const newMessage = document.getElementById('editMessageInput').value;
+  
+  if (!messageId || !newMessage) return alert('Please provide message ID and new content');
+  
+  socket.emit('edit-message', { messageId, newMessage });
+}
+
+function deleteMessage(deleteFor) {
+  const messageId = document.getElementById('messageIdInput').value;
+  if (!messageId) return alert('Please provide message ID');
+  
+  socket.emit('delete-message', { messageId, deleteFor });
+}
+
+function addReaction(emoji) {
+  const messageId = document.getElementById('messageIdInput').value;
+  if (!messageId) return alert('Please provide message ID');
+  
+  socket.emit('add-reaction', { messageId, emoji });
+}
+
+function searchMessages() {
+  const query = document.getElementById('searchInput').value;
+  const userId = document.getElementById('recipientInput').value;
+  
+  if (!query || !userId) return alert('Please provide search query and user ID');
+  
+  socket.emit('search-messages', { userId, query });
+}
+
+// Enhanced socket listeners
+socket.on('message-edited', (data) => {
+  console.log('Message edited:', data);
+  addToChat(`Message edited: ${data.newMessage} (edited at ${data.editedAt})`);
+});
+
+socket.on('message-deleted', (data) => {
+  console.log('Message deleted:', data);
+  addToChat(`Message deleted (${data.deletedFor})`);
+});
+
+socket.on('reaction-added', (data) => {
+  console.log('Reaction added:', data);
+  addToChat(`Reaction ${data.emoji} added to message`);
+});
+
+socket.on('search-results', (data) => {
+  console.log('Search results:', data);
+  addToChat(`Found ${data.results.length} messages for "${data.query}"`);
+});
+</script>
