@@ -38,6 +38,9 @@ const loanspayment= require('./Controllers/monthlyloanpayment')
 const lasttwomonthexpands = require('./Controllers/lasttwomonthexpands')
 const userprofile= require('./Routes/userProfile')
 const shaktidetails= require('./Routes/shaktiProfile')
+const businessinsights = require('./Controllers/budgetai');
+const expensesinsights= require('./Controllers/expensesai');
+const progressinsights = require('./Controllers/progressai');
 
 dotenv.config();
 
@@ -192,7 +195,7 @@ app.use('/community', communityRoutes);
 app.use('/', indexRoutes);
 app.use('/user', getuser);
 app.use('/api', budgetRout);
-app.use('/', profit);
+app.use('/', profit)    ;
 app.use('/tasks', taskRoutes);
 app.use('/api/recentmessages', recentMessagesRoute);
 app.use('/api', sixmonths);
@@ -201,6 +204,9 @@ app.use('/api' ,loanspayment),
 app.use('/api',lasttwomonthexpands),
 app.use('/profile' ,userprofile);
 app.use('/shakti',shaktidetails);
+app.use('/api', businessinsights);
+app.use('/api', expensesinsights);
+app.use('/api', progressinsights);
 
 
 
