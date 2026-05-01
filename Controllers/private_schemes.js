@@ -69,9 +69,9 @@ router.post('/', requireAuth, async (req, res) => {
     console.warn('⚠️ Redis read failed:', err.message);
   }
 
-  const Business = await BuisnessIdeaDeatails.findById(userID);
+  const Business = await BuisnessIdeaDeatails.findOne({ userId: userID });
   const personal = await PersonalDetails.findById(userID);
-  const financial = await FinancialDetails.findById(userID);
+  const financial = await FinancialDetails.findOne({ userId: userID });
   const totalAssets =
     financial?.assetDetails?.Gold_Asset_App_Value +
     financial?.assetDetails?.Land_Asset_App_Value;
@@ -96,8 +96,8 @@ You are a helpful assistant that recommends private bank loan schemes based on t
 - Education: ${personal?.professionalDetails?.Educational_Qualifications || 'not specified'}
 - State: ${Business?.ideaDetails?.Business_Location || 'not specified'}
 - Total Assets value: ${totalAssets || 'not specified'}
-- Require_Loan: ${Business?.financialPlan.Estimated_Startup_Cost || 'not specified'}
-- Previous loan history: ${financial?.existingloanDetails.Total_Loan_Amount || 'not specified'}
+- Require_Loan: ${Business?.financialPlan?.Estimated_Startup_Cost || 'not specified'}
+- Previous loan history: ${financial?.existingloanDetails?.reduce((s, l) => s + (l.Total_Loan_Amount || 0), 0) || 'not specified'}
 -Income: ${financial?.incomeDetails.Primary_Monthly_Income || 'not specified'}
 **Return Format:**
 [
