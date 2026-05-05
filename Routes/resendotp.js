@@ -4,10 +4,17 @@ const tempUsers = require("../tempUserStore");
 
 // Configure Nodemailer transport using Gmail (or other service)
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: process.env.SMTP_HOST || 'smtp.gmail.com',
+  port: parseInt(process.env.SMTP_PORT, 10) || 587,
+  secure: false,
+  requireTLS: true,
+  family: 4,
+  connectionTimeout: 15000,
+  greetingTimeout: 15000,
+  socketTimeout: 20000,
   auth: {
-    user: 'shakti1374@gmail.com',
-    pass: 'zuyh rxns ybrr wihh'  //Use an app-specific password for Gmail
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
   }
 });
 
@@ -46,7 +53,7 @@ const resendOtp = async (req, res) => {
 
     // Send OTP email again
     const mailOptions = {
-      from: 'aikanshtiwari007@gmail.com',
+      from: process.env.EMAIL_USER,
       to: tempUser.personalDetails.Email,
       subject: 'OTP Verification',
       text: `Hi ${tempUser.personalDetails.Full_Name},\n\nYour new OTP for signup is: ${otp}\n\nPlease enter this OTP to verify your email.\n\nRegards,\nTeam`
