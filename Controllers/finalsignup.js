@@ -7,11 +7,13 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 // Configure nodemailer transporter using environment credentials
+const smtpPort = parseInt(process.env.SMTP_PORT, 10) || 587;
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || 'smtp.gmail.com',
-  port: parseInt(process.env.SMTP_PORT, 10) || 587,
-  secure: false,
-  requireTLS: true,
+  port: smtpPort,
+  secure: process.env.SMTP_SECURE
+    ? process.env.SMTP_SECURE === 'true'
+    : smtpPort === 465,
   family: 4,
   connectionTimeout: 15000,
   greetingTimeout: 15000,
