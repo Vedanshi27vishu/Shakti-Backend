@@ -3,13 +3,14 @@ const PersonalDetails = require('../Models/User/PersonalDetailSignup');
 const tempUsers = require("../tempUserStore");
 const { v4: uuidv4 } = require('uuid');
 const nodemailer = require('nodemailer');  // Import Nodemailer
+require('dotenv').config();
 
 // Configure Nodemailer transport using Gmail (or other service)
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: 'shakti1374@gmail.com',
-    pass: 'zuyh rxns ybrr wihh'  // Replace with your email password (use an app-specific password for Gmail)
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
   }
 });
 
@@ -85,7 +86,7 @@ const signupUser = async (req, res) => {
     });
 
     const mailOptions = {
-      from: 'aikanshtiwari007@gmail.com',
+      from: process.env.EMAIL_USER,
       to: Email,
       subject: 'OTP Verification',
       text: `Hi ${Full_Name},\n\nYour OTP for signup is: ${otp}\n\nPlease enter this OTP to verify your email.\n\nRegards,\nTeam`
