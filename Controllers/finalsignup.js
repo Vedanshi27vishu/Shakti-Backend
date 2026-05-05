@@ -6,12 +6,12 @@ const nodemailer = require('nodemailer');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
-// Configure nodemailer transporter
+// Configure nodemailer transporter using environment credentials
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: 'shakti1374@gmail.com',
-    pass: 'zuyh rxns ybrr wihh' // Ideally store this securely in env variables
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
   }
 });
 
@@ -104,7 +104,7 @@ const signup3User = async (req, res) => {
 
     // Prepare confirmation email
     const mailOptions = {
-      from: 'shakti1374@gmail.com',
+      from: process.env.EMAIL_USER,
       to: email,
       subject: 'Congratulations on Signup!',
       text: `Hi ${Full_Name},\n\nCongratulations! Your signup is complete.\n\nThank you for joining us!\n\nRegards,\nTeam`
